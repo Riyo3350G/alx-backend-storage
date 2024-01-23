@@ -12,7 +12,9 @@ def nginx_logs_stats(nginx_collection):
         .count_documents({"method": "GET", "path": "/status"})
     print(f"{totalCollection} logs")
     print("Methods:")
-    for m, c in zip(methods, counts):
+    for i in range(len(methods)):
+        m = methods[i]
+        c = counts[i]
         print(f"\tmethod {m}: {c}")
     print(f"{status} status check")
     return None
