@@ -14,13 +14,13 @@ def count_access(fn: callable) -> callable:
     def wrapper(url):
         """wrapper function for decorator"""
         redis.incr(f"count:{url}")
-        page = redis.get(url)
-        if not page:
-            page = fn(url)
-            redis.setex(url, 10, page)
-        return page
+        cached_html = redis.get(f"cached:{url}")
+        if cached_html:
+            return cached_html.decode('utf-8')
+        html = fn(url)
+        redis.setex(f"cached:{url}", 10, html)
+        return html
     return wrapper
-        
 
 
 @count_access
