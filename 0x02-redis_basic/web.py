@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""web module"""
+"""web caching module"""
 import requests
 import redis
 from functools import wraps
@@ -27,5 +27,4 @@ def count_access(method: Callable) -> Callable:
 @count_access
 def get_page(url: str) -> str:
     """function that returns the HTML content of a URL"""
-    response = requests.get(url)
-    return response.text
+    return requests.get(url).text
