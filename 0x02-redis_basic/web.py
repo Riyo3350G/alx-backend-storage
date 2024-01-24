@@ -1,33 +1,30 @@
 #!/usr/bin/env python3
 """web caching module"""
+import requests
+import redis
 from functools import wraps
 from typing import Callable
 
-import redis
-import requests
 
-store = redis.Redis()
+rd = redis.Redis()
 
 
-def data_cacher(method: Callable) -> Callable:
-    ''' data_cacher '''
+def count_access(method: Callable) -> Callable:
+    """count access decorator"""
     @wraps(method)
     def wrapper(url) -> str:
-        '''wrapper function for decorator'''
-        store.incr(f'count:{url}')
-        output = store.get(f'cached:{url}')
-
-        if output:
-            return output.decode('utf-8')
-
-        output = method(url)
-        store.setex(f'cached:{url}', 10, output)
-        return output
-
+        """wrapper function for decorator"""
+        rd.incr(f"count:{url}")
+        cached_html = rd.get(f"cached:{url}")
+        if cached_html:
+            return cached_html.decode("utf-8")
+        cached_html = method(url)
+        rd.setex(f"cached:{url}", 10, cached_html)
+        return cached_html
     return wrapper
 
 
-@data_cacher
+@count_access
 def get_page(url: str) -> str:
-    ''' get_page: function that returns html content '''
+    """function that returns the HTML content of a URL"""
     return requests.get(url).text
