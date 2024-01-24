@@ -11,11 +11,16 @@ redis = redis.Redis()
 def count_access(fn: callable) -> callable:
     """count access decorator"""
     @wraps(fn)
-    def wrapper(*args, **kwargs):
+    def wrapper(url):
         """wrapper function for decorator"""
-        redis.incr("count:{}".format(fn.__qualname__))
-        return fn(*args, **kwargs)
+        redis.incr(f"count:{url}")
+        page = redis.get(url)
+        if not page:
+            page = fn(url)
+            redis.setex(url, 10, page)
+        return page
     return wrapper
+        
 
 
 @count_access
