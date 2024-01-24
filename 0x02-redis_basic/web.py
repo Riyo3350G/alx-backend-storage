@@ -19,6 +19,7 @@ def count_access(method: Callable) -> Callable:
         if cached_html:
             return cached_html.decode('utf-8')
         html = method(url)
+        redis.set(f"count:{url}", 0)
         redis.setex("cached:{}".format(url), 10, html)
         return html
     return wrapper
