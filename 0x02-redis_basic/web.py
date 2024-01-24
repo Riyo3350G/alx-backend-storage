@@ -9,12 +9,22 @@ from typing import Callable
 rd = redis.Redis()
 
 
+def count_access(method: Callable) -> Callable:
+    """count access decorator"""
+    @wraps(method)
+    def wrapper(url) -> str:
+        """wrapper function for decorator"""
+        rd.incr(f"count:{url}")
+        cached_html = rd.get(f"cached:{url}")
+        if cached_html:
+            return cached_html.decode("utf-8")
+        html = method(url)
+        rd.setex(f"cached:{url}", 10, html)
+        return html
+    return wrapper
+
+
+@count_access
 def get_page(url: str) -> str:
     """function that returns the HTML content of a URL"""
-    html = requests.get(url).text
-    if not rd.get(f"count:{url}"):
-        rd.set(f"count:{url}", 1)
-        rd.setex(f"result:{url}", 10, html)
-    else:
-        rd.incr(f"count:{url}", 1)
-    return html
+    return requests.get(url).text
