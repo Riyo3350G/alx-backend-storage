@@ -6,7 +6,7 @@ from functools import wraps
 from typing import Callable
 
 
-redis = redis.Redis()
+rd = redis.Redis()
 
 
 def count_access(method: Callable) -> Callable:
@@ -14,13 +14,14 @@ def count_access(method: Callable) -> Callable:
     @wraps(method)
     def wrapper(url) -> str:
         """wrapper function for decorator"""
-        redis.incr("count:{}".format(url))
-        cached_html = redis.get("cached:{}".format(url))
+        rd.incr(f"count:{url}")
+        cached_html = rd.get(f"cached:{url}")
         if cached_html:
             return cached_html.decode('utf-8')
         html = method(url)
-        redis.setex("cached:{}".format(url), 10, html)
+        rd.setex(f"cached:{url}", 10, html)
         return html
+    return wrapper
 
 
 @count_access
