@@ -17,10 +17,10 @@ def count_access(method: Callable) -> Callable:
         rd.incr(f"count:{url}")
         cached_html = rd.get(f"cached:{url}")
         if cached_html:
-            return cached_html.decode('utf-8')
-        html = method(url)
-        rd.setex(f"cached:{url}", 10, html)
-        return html
+            return cached_html.decode("utf-8")
+        cached_html = method(url)
+        rd.setex(f"cached:{url}", 10, cached_html)
+        return cached_html
     return wrapper
 
 
